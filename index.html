@@ -715,8 +715,7 @@
   무료 상담 신청 →
 </button>
 
-<script>
-  const observer = new IntersectionObserver((entries) => {
+<script type="module"> = new IntersectionObserver((entries) => {
     entries.forEach((entry, i) => {
       if (entry.isIntersecting) {
         setTimeout(() => entry.target.classList.add('visible'), i * 100);
@@ -738,7 +737,24 @@
     }
   });
 
-  function submitForm() {
+  // ── Firebase 초기화 ──
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyA0dUb1p0wAWZHvDP1mG_WO3QJ7xhSYJ5s",
+    authDomain: "dscrew-6da8c.firebaseapp.com",
+    projectId: "dscrew-6da8c",
+    storageBucket: "dscrew-6da8c.firebasestorage.app",
+    messagingSenderId: "235741797636",
+    appId: "1:235741797636:web:5e9c9cf83751fc0504c451",
+    measurementId: "G-60G8QVFVCL"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  async function submitForm() {
     const storeName = document.getElementById('storeName').value.trim();
     const product = document.getElementById('product').value;
     const name = document.getElementById('name').value.trim();
@@ -755,7 +771,6 @@
       return;
     }
 
-    // TODO: Firebase Firestore 저장 + 네이버 메일 알림 연동 예정
     const data = {
       storeName,
       product,
@@ -766,13 +781,21 @@
       memo: document.getElementById('memo').value,
       createdAt: new Date().toISOString()
     };
-    console.log('상담 신청:', data);
+
+    try {
+      await addDoc(collection(db, 'leads'), data);
+      console.log('Firestore 저장 완료');
+    } catch(e) {
+      console.error('저장 실패:', e);
+    }
 
     document.getElementById('formContent').style.display = 'none';
     document.getElementById('successMsg').style.display = 'block';
     stickyCta.classList.remove('show');
     window.scrollTo({ top: document.getElementById('form').offsetTop - 20, behavior: 'smooth' });
   }
+
+  window.submitForm = submitForm;
 </script>
 </body>
 </html>
